@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Corporate Light Mode Palette */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f6f8;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9fafb;
+  --border-subtle: #e5e7eb;
+  
+  --text-main: #111827;
+  --text-muted: #4b5563;
+  --text-dim: #9ca3af;
+  
+  --primary-accent: #000000;
+  --primary-accent-hover: #333333;
+  --secondary-accent: #a3bce2; /* The light blue from the footer */
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  touch-action: pan-x pan-y;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Helpers */
+.font-display {
+  font-family: var(--font-sans);
+}
+
+/* Glass/Card Panels */
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-panel-elevated {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  border-radius: 16px;
+}
+
+/* Titanium Card -> Corporate Card */
+.titanium-card {
+  background: #111827;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.titanium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Modern Adaptive Buttons */
+.btn-bheeshma-primary {
+  background: var(--primary-accent);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 999px; /* Pill shape like the image */
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-bheeshma-primary:hover {
+  background: var(--primary-accent-hover);
+}
+
+.btn-bheeshma-secondary {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-bheeshma-secondary:hover {
+  background: var(--bg-secondary);
+}
+
+/* Mobile Frame Mockup */
+.phone-viewport-container {
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+  min-height: 800px;
+  background: #ffffff;
+  border-radius: 40px;
+  border: 12px solid #f3f4f6;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-notch {
+  width: 100px;
+  height: 20px;
+  background: #f3f4f6;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+/* Utilities */
+.text-center { text-align: center; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-4 { margin-top: 1rem; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+/* Responsive Grid Layout */
+.app-grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.app-grid-container.with-copilot {
+  grid-template-columns: 1fr 450px;
+}
+
+@media (max-width: 1024px) {
+  .app-grid-container.with-copilot {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Header mobile responsiveness */
+@media (max-width: 768px) {
+  header > div {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch !important;
+  }
+  
+  header nav {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  header .right-controls {
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  main {
+    padding: 16px 8px !important;
+  }
+}

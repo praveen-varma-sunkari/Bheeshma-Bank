@@ -1,0 +1,588 @@
+   1|  0| import React, { useState } from 'react';
+   2|  0| import { 
+   3|  0|   Landmark, QrCode, Eye, EyeOff, 
+   4|  0|   ArrowUpRight, ArrowDownLeft, ShieldCheck, Zap, 
+   5|  0|   Search, Bot, ChevronRight, Settings, FileCheck, Copy, Check,
+   6|  0|   Globe, TrendingUp, Sparkles, LogOut, Wallet, ArrowRightLeft, ArrowRight
+   7|  0| } from 'lucide-react';
+   8|  0| import { UpiPinModal } from './UpiPinModal';
+   9|  0| 
+  10|  0| export const AuraBankingHome = ({
+  11|  0|   user,
+  12|  0|   transactions = [],
+  13|  0|   contacts,
+  14|  0|   onOpenTransferModal,
+  15|  0|   onOpenScanPay,
+  16|  0|   onOpenCheckBalance,
+  17|  0|   onSelectContactToPay,
+  18|  0|   onNavigateToCopilot,
+  19|  0|   onNavigateToLoans,
+  20|  0|   onOpenSettings,
+  21|  0|   _onOpenAuthModal,
+  22|  0|   onOpenOpenBankAccount,
+  23|  0|   onOpenCloseBankAccount,
+  24|  0|   onLogoutWebsite,
+  25|  0|   onOpenPayMobile,
+  26|  0|   onOpenMyQR,
+  27|  0|   onToggleLock,
+  28|  0|   onOpenBookings,
+  29|  0|   onOpenAddMoney,
+  30|  0|   onNavigateToAIInsights,
+  31|  0|   onOpenContactChat,
+  32|  0|   onNavigateToSavedContacts,
+  33|  0|   onNavigateToTransactionHistory
+  34|  0| }) => {
+  35|  0|   const [showBalance, setShowBalance] = useState(false);
+  36|  0|   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  37|  0|   const [txSearch, setTxSearch] = useState("");
+  38|  0|   const [selectedCategory, setSelectedCategory] = useState("ALL");
+  39|  0|   const [copiedIban, setCopiedIban] = useState(false);
+  40|  0|   const [activeCurrency, setActiveCurrency] = useState(user?.currency || "INR");
+  41|  0|   const hasFraudAlert = !!user?.pendingFraudAlert;
+  42|  0| 
+  43|  0|   const hasBankAccount = Boolean(user?.hasBankAccount);
+  44|  0|   const primaryAccount = user?.accounts?.find(a => a.isPrimary) || user?.accounts?.[0] || {
+  45|  0|     bankName: "Aura Sovereign Checking",
+  46|  0|     accountNumber: "•••• 0000",
+  47|  0|     balance: 0.00,
+  48|  0|     type: "Unprovisioned"
+  49|  0|   };
+  50|  0| 
+  51|  0|   const currencySymbols = {
+  52|  0|     INR: "₹",
+  53|  0|     EUR: "€",
+  54|  0|     GBP: "£",
+  55|  0|     USD: "$"
+  56|  0|   };
+  57|  0| 
+  58|  0|   const currentSymbol = currencySymbols[activeCurrency] || "₹";
+  59|  0| 
+  60|  0|   const exchangeRates = {
+  61|  0|     INR: 1.0,
+  62|  0|     EUR: 0.92,
+  63|  0|     GBP: 0.78,
+  64|  0|     USD: 0.012
+  65|  0|   };
+  66|  0| 
+  67|  0|   const formatAmount = (amt) => {
+  68|  0|     const rate = exchangeRates[activeCurrency] || 1.0;
+  69|  0|     const converted = amt * rate;
+  70|  0|     return `${currentSymbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  71|  0|   };
+  72|  0| 
+  73|  0|   const handleCopyIban = () => {
+  74|  0|     if (!user?.iban) return;
+  75|  0|     navigator.clipboard?.writeText(user.iban);
+  76|  0|     setCopiedIban(true);
+  77|  0|     setTimeout(() => setCopiedIban(false), 2000);
+  78|  0|   };
+  79|  0| 
+  80|  0|   const filteredTransactions = transactions.filter(tx => {
+  81|  0|     const matchesSearch = tx.title.toLowerCase().includes(txSearch.toLowerCase()) || 
+  82|  0|                           (tx.upiId && tx.upiId.toLowerCase().includes(txSearch.toLowerCase())) ||
+  83|  0|                           (tx.category && tx.category.toLowerCase().includes(txSearch.toLowerCase()));
+  84|  0|     const matchesCategory = selectedCategory === "ALL" || tx.category === selectedCategory;
+  85|  0|     return matchesSearch && matchesCategory;
+  86|  0|   });
+  87|  0| 
+  88|  0|   const uniqueCategories = ["ALL", ...Array.from(new Set(transactions.map(t => t.category || "General")))];
+  89|  0| 
+  90|  0|   return (
+  91|  1|     <div style={{ paddingBottom: '30px' }}>
+  92|  1|       {/* Top International Neobank Navigation Banner */}
+  93|  2|       <div style={{
+  94|  2|         background: '#ffffff',
+  95|  2|         padding: '22px 20px 24px',
+  96|  2|         borderRadius: '0 0 28px 28px',
+  97|  2|         borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+  98|  2|         boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
+  99|  2|         color: '#111827',
+ 100|  2|         position: 'relative'
+ 101|  2|       }}>
+ 102|  2|         {/* Top identity bar */}
+ 103|  3|         <div onClick={onOpenSettings} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', cursor: 'pointer' }}>
+ 104|  4|           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+ 105|  5|             <div style={{
+ 106|  5|               width: '46px',
+ 107|  5|               height: '46px',
+ 108|  5|               borderRadius: '16px',
+ 109|  5|               border: '2px solid rgba(0, 240, 255, 0.5)',
+ 110|  5|               overflow: 'hidden',
+ 111|  5|               background: '#f3f4f6',
+ 112|  5|               boxShadow: '0 0 16px rgba(0, 240, 255, 0.25)'
+ 113|  5|             }}>
+ 114|  5|               <img src={user?.avatarUrl || "https://api.dicebear.com/7.x/bottts/svg?seed=Aura"} alt={user?.name || "User"} style={{ width: '100%', height: '100%' }} />
+ 115|  4|             </div>
+ 116|  5|             <div>
+ 117|  6|               <div style={{ fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+ 118|  6|                 <span style={{ fontFamily: 'Outfit, sans-serif' }}>{user?.name || "Aura User"}</span>
+ 119|  6|                 <ShieldCheck size={16} color={hasBankAccount ? "#00f0ff" : "#f59e0b"} />
+ 120|  5|               </div>
+ 121|  6|               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+ 122|  6|                 <span style={{
+ 123|  6|                   fontSize: '10px',
+ 124|  6|                   fontWeight: '800',
+ 125|  6|                   color: hasBankAccount ? '#000000' : '#f59e0b',
+ 126|  6|                   background: hasBankAccount ? 'rgba(0, 0, 0, 0.05)' : 'rgba(245, 158, 11, 0.12)',
+ 127|  6|                   padding: '1px 7px',
+ 128|  6|                   borderRadius: '6px',
+ 129|  6|                   letterSpacing: '0.4px'
+ 130|  6|                 }}>
+ 131|  6|                   {hasBankAccount ? (user?.tier || "AURA BLACK") : "PROFILE VERIFIED (NO BANK ACCOUNT)"}
+ 132|  6|                 </span>
+ 133|  6|                 <span style={{ fontSize: '11px', color: '#6b7280' }}>
+ 134|  6|                   {hasBankAccount ? (user?.accountNumber || "AURA-7829-9182") : user?.phone}
+ 135|  6|                 </span>
+ 136|  5|               </div>
+ 137|  4|             </div>
+ 138|  3|           </div>
+ 139|  3| 
+ 140|  3|           {/* Action icon buttons */}
+ 141|  4|           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 142|  4| 
+ 143|  4|             <button
+ 144|  4|               onClick={onOpenScanPay}
+ 145|  4|               title="International QR Scan & Pay"
+ 146|  4|               style={{
+ 147|  4|                 width: '38px',
+ 148|  4|                 height: '38px',
+ 149|  4|                 borderRadius: '12px',
+ 150|  4|                 border: '1px solid rgba(0, 240, 255, 0.3)',
+ 151|  4|                 background: 'rgba(0, 0, 0, 0.05)',
+ 152|  4|                 color: '#000000',
+ 153|  4|                 display: 'flex',
+ 154|  4|                 alignItems: 'center',
+ 155|  4|                 justifyContent: 'center',
+ 156|  4|                 cursor: 'pointer'
+ 157|  4|               }}
+ 158|  4|             >
+ 159|  4|               <QrCode size={18} />
+ 160|  4|             </button>
+ 161|  4| 
+ 162|  4|             {/* Requirement 5: Log out from website only */}
+ 163|  4|             <button
+ 164|  4|               onClick={onLogoutWebsite}
+ 165|  4|               title="Log Out from Aura Website (Leaves Bank Account Intact)"
+ 166|  4|               style={{
+ 167|  4|                 width: '38px',
+ 168|  4|                 height: '38px',
+ 169|  4|                 borderRadius: '12px',
+ 170|  4|                 border: '1px solid rgba(239, 68, 68, 0.3)',
+ 171|  4|                 background: 'rgba(239, 68, 68, 0.12)',
+ 172|  4|                 color: '#f87171',
+ 173|  4|                 display: 'flex',
+ 174|  4|                 alignItems: 'center',
+ 175|  4|                 justifyContent: 'center',
+ 176|  4|                 cursor: 'pointer'
+ 177|  4|               }}
+ 178|  4|             >
+ 179|  4|               <LogOut size={16} />
+ 180|  4|             </button>
+ 181|  3|           </div>
+ 182|  2|         </div>
+ 183|  2| 
+ 184|  2|         {/* BANK ACCOUNT STATUS: ACTIVE TITANIUM CARD vs PROVISIONING REQUIRED */}
+ 185|  3|           <div className="titanium-card">
+ 186|  4|             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+ 187|  5|               <div>
+ 188|  6|                 <div style={{
+ 189|  6|                   display: 'flex',
+ 190|  6|                   alignItems: 'center',
+ 191|  6|                   gap: '6px',
+ 192|  6|                   fontSize: '12px',
+ 193|  6|                   fontWeight: '700',
+ 194|  6|                   color: '#94a3b8',
+ 195|  6|                   letterSpacing: '1px',
+ 196|  6|                   textTransform: 'uppercase'
+ 197|  6|                 }}>
+ 198|  6|                   <Sparkles size={14} />
+ 199|  6|                   <span>Aura Sovereign Card</span>
+ 200|  5|                 </div>
+ 201|  6|                 <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+ 202|  6|                   {primaryAccount.type}
+ 203|  5|                 </div>
+ 204|  4|               </div>
+ 205|  4| 
+ 206|  4|               {/* EMV Chip & Contactless wave */}
+ 207|  5|               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 208|  6|                 <div style={{
+ 209|  6|                   width: '34px',
+ 210|  6|                   height: '24px',
+ 211|  6|                   borderRadius: '6px',
+ 212|  6|                   background: 'linear-gradient(135deg, #d4af37, #aa7c11)',
+ 213|  6|                   border: '1px solid rgba(255,255,255,0.4)',
+ 214|  6|                   boxShadow: 'inset 0 0 4px rgba(0,0,0,0.4)'
+ 215|  6|                 }} />
+ 216|  6|                 <Zap size={16} color="#00f0ff" />
+ 217|  5|               </div>
+ 218|  4|             </div>
+ 219|  4| 
+ 220|  4|             {/* Balance display */}
+ 221|  5|             <div style={{ marginBottom: '22px' }}>
+ 222|  6|               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+ 223|  6|                 <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
+ 224|  6|                   Primary Available Liquidity
+ 225|  6|                 </span>
+ 226|  6|                 <button 
+ 227|  6|                   onClick={() => {
+ 228|  6|                     if (showBalance) {
+ 229|  6|                       setShowBalance(false);
+ 230|  6|                     } else {
+ 231|  6|                       setIsPinModalOpen(true);
+ 232|  6|                     }
+ 233|  6|                   }}
+ 234|  6|                   style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+ 235|  6|                 >
+ 236|  6|                   {showBalance ? <EyeOff size={15} /> : <Eye size={15} />}
+ 237|  6|                 </button>
+ 238|  5|               </div>
+ 239|  5| 
+ 240|  6|               <div style={{
+ 241|  6|                 fontSize: '34px',
+ 242|  6|                 fontWeight: '900',
+ 243|  6|                 fontFamily: 'Outfit, sans-serif',
+ 244|  6|                 letterSpacing: '-1px',
+ 245|  6|                 display: 'flex',
+ 246|  6|                 alignItems: 'baseline',
+ 247|  6|                 gap: '10px'
+ 248|  6|               }}>
+ 249|  6|                 <span>{showBalance ? formatAmount(primaryAccount.balance) : "••••••••"}</span>
+ 250|  6|                 <span style={{
+ 251|  6|                   fontSize: '11px',
+ 252|  6|                   fontWeight: '700',
+ 253|  6|                   color: '#10b981',
+ 254|  6|                   background: 'rgba(16, 185, 129, 0.15)',
+ 255|  6|                   padding: '2px 8px',
+ 256|  6|                   borderRadius: '6px',
+ 257|  6|                   display: 'inline-flex',
+ 258|  6|                   alignItems: 'center',
+ 259|  6|                   gap: '2px'
+ 260|  6|                 }}>
+ 261|  6|                   <TrendingUp size={11} /> +2.4% APY
+ 262|  6|                 </span>
+ 263|  5|               </div>
+ 264|  4|             </div>
+ 265|  4| 
+ 266|  4|             {/* Card Footer: Number & Expiry & IBAN copy & Close Bank Account */}
+ 267|  5|             <div style={{
+ 268|  5|               display: 'flex',
+ 269|  5|               alignItems: 'flex-end',
+ 270|  5|               justifyContent: 'space-between',
+ 271|  5|               borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+ 272|  5|               paddingTop: '14px'
+ 273|  5|             }}>
+ 274|  6|               <div>
+ 275|  7|                 <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+ 276|  7|                   Cardholder Name
+ 277|  6|                 </div>
+ 278|  7|                 <div style={{ fontSize: '13px', fontWeight: '700', color: '#e2e8f0', letterSpacing: '0.5px' }}>
+ 279|  7|                   {user?.name?.toUpperCase()}
+ 280|  6|                 </div>
+ 281|  5|               </div>
+ 282|  5| 
+ 283|  6|               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 284|  6|                 <button
+ 285|  6|                   onClick={handleCopyIban}
+ 286|  6|                   style={{
+ 287|  6|                     background: 'rgba(0, 240, 255, 0.08)',
+ 288|  6|                     border: '1px solid rgba(0, 240, 255, 0.25)',
+ 289|  6|                     borderRadius: '8px',
+ 290|  6|                     padding: '4px 8px',
+ 291|  6|                     color: '#94a3b8',
+ 292|  6|                     fontSize: '11px',
+ 293|  6|                     fontWeight: '600',
+ 294|  6|                     display: 'flex',
+ 295|  6|                     alignItems: 'center',
+ 296|  6|                     gap: '4px',
+ 297|  6|                     cursor: 'pointer'
+ 298|  6|                   }}
+ 299|  6|                 >
+ 300|  6|                   {copiedIban ? <Check size={12} /> : <Copy size={12} />}
+ 301|  6|                   <span>{copiedIban ? "Copied" : (user?.iban ? user.iban.slice(0, 12) + "..." : "Copy IBAN")}</span>
+ 302|  6|                 </button>
+ 303|  6| 
+ 304|  6|                 {/* Requirement 5: Option to delete bank account */}
+ 305|  6|                 <button
+ 306|  6|                   onClick={onOpenCloseBankAccount}
+ 307|  6|                   title="Close and Delete Bank Account"
+ 308|  6|                   style={{
+ 309|  6|                     background: 'rgba(239, 68, 68, 0.1)',
+ 310|  6|                     border: '1px solid rgba(239, 68, 68, 0.25)',
+ 311|  6|                     borderRadius: '8px',
+ 312|  6|                     padding: '4px 8px',
+ 313|  6|                     color: '#f87171',
+ 314|  6|                     fontSize: '11px',
+ 315|  6|                     fontWeight: '600',
+ 316|  6|                     cursor: 'pointer'
+ 317|  6|                   }}
+ 318|  6|                 >
+ 319|  6|                   Close Account
+ 320|  6|                 </button>
+ 321|  5|               </div>
+ 322|  4|             </div>
+ 323|  3|           </div>
+ 324|  3| 
+ 325|  3|       {/* Main Content Dashboard */}
+ 326|  4|       <div style={{ padding: '18px 16px' }}>
+ 327|  4| 
+ 328|  4|         {/* Global Financial Action 4-Grid */}
+ 329|  5|         <div style={{
+ 330|  5|           background: '#ffffff',
+ 331|  5|           borderRadius: '22px',
+ 332|  5|           border: '1px solid rgba(0, 0, 0, 0.1)',
+ 333|  5|           padding: '18px 14px',
+ 334|  5|           marginBottom: '20px',
+ 335|  5|           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)'
+ 336|  5|         }}>
+ 337|  6|           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', textAlign: 'center' }}>
+ 338|  6|             <button
+ 339|  6|               onClick={() => onOpenAddMoney && onOpenAddMoney()}
+ 340|  6|               style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+ 341|  6|             >
+ 342|  7|               <div style={{
+ 343|  7|                 width: '50px',
+ 344|  7|                 height: '50px',
+ 345|  7|                 borderRadius: '16px',
+ 346|  7|                 background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+ 347|  7|                 display: 'flex',
+ 348|  7|                 alignItems: 'center',
+ 349|  7|                 justifyContent: 'center',
+ 350|  7|                 boxShadow: '0 4px 15px rgba(16, 185, 129, 0.35)',
+ 351|  7|                 color: '#fff'
+ 352|  7|               }}>
+ 353|  7|                 <Sparkles size={22} />
+ 354|  6|               </div>
+ 355|  6|               <span style={{ fontSize: '11px', fontWeight: '700', lineHeight: '1.2' }}>Add<br />Money</span>
+ 356|  6|             </button>
+ 357|  6| 
+ 358|  6|             <button
+ 359|  6|               onClick={() => onNavigateToSavedContacts && onNavigateToSavedContacts()}
+ 360|  6|               style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+ 361|  6|             >
+ 362|  7|               <div style={{
+ 363|  7|                 width: '50px',
+ 364|  7|                 height: '50px',
+ 365|  7|                 borderRadius: '16px',
+ 366|  7|                 background: 'linear-gradient(135deg, #00f0ff 0%, #0284c7 100%)',
+ 367|  7|                 display: 'flex',
+ 368|  7|                 alignItems: 'center',
+ 369|  7|                 justifyContent: 'center',
+ 370|  7|                 boxShadow: '0 4px 15px rgba(0, 240, 255, 0.35)',
+ 371|  7|                 color: '#000000'
+ 372|  7|               }}>
+ 373|  7|                 <ArrowRightLeft size={22} />
+ 374|  6|               </div>
+ 375|  6|               <span style={{ fontSize: '11px', fontWeight: '700', lineHeight: '1.2' }}>Pay to<br />Mobile</span>
+ 376|  6|             </button>
+ 377|  6| 
+ 378|  6|             <button
+ 379|  6|               onClick={() => onOpenScanPay && onOpenScanPay()}
+ 380|  6|               style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+ 381|  6|             >
+ 382|  7|               <div style={{
+ 383|  7|                 width: '50px',
+ 384|  7|                 height: '50px',
+ 385|  7|                 borderRadius: '16px',
+ 386|  7|                 background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+ 387|  7|                 display: 'flex',
+ 388|  7|                 alignItems: 'center',
+ 389|  7|                 justifyContent: 'center',
+ 390|  7|                 boxShadow: '0 4px 15px rgba(59, 130, 246, 0.35)'
+ 391|  7|               }}>
+ 392|  7|                 <QrCode size={22} color="#fff" />
+ 393|  6|               </div>
+ 394|  6|               <span style={{ fontSize: '11px', fontWeight: '700', lineHeight: '1.2' }}>Scan<br />QR Code</span>
+ 395|  6|             </button>
+ 396|  6| 
+ 397|  6|             <button
+ 398|  6|               onClick={() => onOpenMyQR && onOpenMyQR()}
+ 399|  6|               style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+ 400|  6|             >
+ 401|  7|               <div style={{
+ 402|  7|                 width: '50px',
+ 403|  7|                 height: '50px',
+ 404|  7|                 borderRadius: '16px',
+ 405|  7|                 background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+ 406|  7|                 display: 'flex',
+ 407|  7|                 alignItems: 'center',
+ 408|  7|                 justifyContent: 'center',
+ 409|  7|                 boxShadow: '0 4px 15px rgba(139, 92, 246, 0.35)'
+ 410|  7|               }}>
+ 411|  7|                 <Eye size={22} color="#fff" />
+ 412|  6|               </div>
+ 413|  6|               <span style={{ fontSize: '11px', fontWeight: '700', lineHeight: '1.2' }}>My<br />QR Code</span>
+ 414|  6|             </button>
+ 415|  6| 
+ 416|  6|             <button
+ 417|  6|               onClick={() => onToggleLock && onToggleLock()}
+ 418|  6|               style={{ background: 'none', border: 'none', color: '#111827', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+ 419|  6|             >
+ 420|  7|               <div style={{
+ 421|  7|                 width: '50px',
+ 422|  7|                 height: '50px',
+ 423|  7|                 borderRadius: '16px',
+ 424|  7|                 background: user?.isTransactionLocked ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' : 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+ 425|  7|                 display: 'flex',
+ 426|  7|                 alignItems: 'center',
+ 427|  7|                 justifyContent: 'center',
+ 428|  7|                 boxShadow: '0 4px 15px rgba(16, 185, 129, 0.35)'
+ 429|  7|               }}>
+ 430|  7|                 <ShieldCheck size={22} color="#fff" />
+ 431|  6|               </div>
+ 432|  6|               <span style={{ fontSize: '11px', fontWeight: '700', lineHeight: '1.2' }}>{user?.isTransactionLocked ? 'Unlock' : 'Lock'}<br />Access</span>
+ 433|  6|             </button>
+ 434|  5|           </div>
+ 435|  4|         </div>
+ 436|  4| 
+ 437|  4|         {/* Live Forex & Market Ticker Bar */}
+ 438|  5|         <div style={{
+ 439|  5|           background: 'rgba(0, 0, 0, 0.03)',
+ 440|  5|           border: '1px solid rgba(0, 0, 0, 0.03)',
+ 441|  5|           borderRadius: '14px',
+ 442|  5|           padding: '10px 14px',
+ 443|  5|           marginBottom: '20px',
+ 444|  5|           display: 'flex',
+ 445|  5|           alignItems: 'center',
+ 446|  5|           justifyContent: 'space-between',
+ 447|  5|           fontSize: '11px',
+ 448|  5|           overflowX: 'auto',
+ 449|  5|           gap: '12px'
+ 450|  5|         }}>
+ 451|  6|           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#000000', fontWeight: '700' }}>
+ 452|  6|             <Globe size={14} />
+ 453|  6|             <span>GLOBAL RATES:</span>
+ 454|  5|           </div>
+ 455|  5|           <div style={{ color: '#4b5563' }}>EUR/INR: <b>1.0924</b> <span style={{ color: '#10b981' }}>+0.28%</span></div>
+ 456|  5|           <div style={{ color: '#4b5563' }}>GBP/INR: <b>1.3012</b> <span style={{ color: '#10b981' }}>+0.14%</span></div>
+ 457|  5|           <div style={{ color: '#4b5563' }}>INR/INR: <b>83.92</b> <span style={{ color: '#6b7280' }}>-0.02%</span></div>
+ 458|  5|           <div style={{ color: '#4b5563' }}>AURA APY: <b style={{ color: '#000000' }}>5.15%</b></div>
+ 459|  4|         </div>
+ 460|  4| 
+ 461|  4|         {/* NEW REQUIREMENT: AI Financial Insights & Security Hub Banner */}
+ 462|  5|         <div 
+ 463|  5|           onClick={onNavigateToAIInsights}
+ 464|  5|           style={{
+ 465|  5|             background: hasFraudAlert ? 'linear-gradient(135deg, #2a0b0b 0%, #111827 100%)' : 'linear-gradient(135deg, #111827 0%, #1e293b 100%)',
+ 466|  5|             borderRadius: '20px',
+ 467|  5|             border: hasFraudAlert ? '2px solid #ef4444' : '1px solid rgba(0, 240, 255, 0.4)',
+ 468|  5|             padding: '20px',
+ 469|  5|             marginBottom: '20px',
+ 470|  5|             cursor: 'pointer',
+ 471|  5|             display: 'flex',
+ 472|  5|             alignItems: 'center',
+ 473|  5|             justifyContent: 'space-between',
+ 474|  5|             boxShadow: hasFraudAlert ? '0 0 20px rgba(239, 68, 68, 0.6)' : '0 12px 30px rgba(0, 0, 0, 0.15)',
+ 475|  5|             position: 'relative',
+ 476|  5|             overflow: 'hidden',
+ 477|  5|             animation: hasFraudAlert ? 'pulse-red 1.5s infinite' : 'none'
+ 478|  5|           }}
+ 479|  5|         >
+ 480|  5|           {/* Subtle background glow */}
+ 481|  5|           <style>{`
+ 482|  5|             @keyframes pulse-red {
+ 483|  5|               0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+ 484|  5|               70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+ 485|  5|               100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+ 486|  5|             }
+ 487|  5|           `}</style>
+ 488|  6|           <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: hasFraudAlert ? 'radial-gradient(circle, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0) 70%)' : 'radial-gradient(circle, rgba(0,240,255,0.2) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%' }} />
+ 489|  6|           
+ 490|  7|           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative', zIndex: 1 }}>
+ 491|  8|             <div style={{
+ 492|  8|               width: '46px',
+ 493|  8|               height: '46px',
+ 494|  8|               borderRadius: '14px',
+ 495|  8|               background: hasFraudAlert ? 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)' : 'linear-gradient(135deg, #00f0ff 0%, #0284c7 100%)',
+ 496|  8|               display: 'flex',
+ 497|  8|               alignItems: 'center',
+ 498|  8|               justifyContent: 'center',
+ 499|  8|               color: hasFraudAlert ? '#fff' : '#000',
+ 500|  8|               boxShadow: hasFraudAlert ? '0 4px 15px rgba(239, 68, 68, 0.4)' : '0 4px 15px rgba(0, 240, 255, 0.4)'
+ 501|  8|             }}>
+ 502|  8|               <ShieldCheck size={24} />
+ 503|  7|             </div>
+ 504|  8|             <div>
+ 505|  9|               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+ 506|  9|                 <span style={{ fontSize: '15px', fontWeight: '800', color: '#fff', fontFamily: 'Outfit, sans-serif' }}>
+ 507|  9|                   Smart Banking & AI Security
+ 508|  9|                 </span>
+ 509|  9|                 <span style={{ 
+ 510|  9|                   background: hasFraudAlert ? 'rgba(239, 68, 68, 0.15)' : 'rgba(0, 240, 255, 0.15)', color: hasFraudAlert ? '#ef4444' : '#00f0ff', 
+ 511|  9|                   fontSize: '9px', fontWeight: '800', padding: '3px 6px', 
+ 512|  9|                   borderRadius: '6px', letterSpacing: '0.5px', textTransform: 'uppercase'
+ 513|  9|                 }}>{hasFraudAlert ? 'ACTION REQUIRED' : 'AI Powered'}</span>
+ 514|  8|               </div>
+ 515|  9|               <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.4' }}>
+ 516|  9|                 Real-time fraud alerts, daily expense insights & waste tracking
+ 517|  8|               </div>
+ 518|  7|             </div>
+ 519|  6|           </div>
+ 520|  7|           <div style={{ 
+ 521|  7|             width: '32px', height: '32px', borderRadius: '50%', 
+ 522|  7|             background: 'rgba(255,255,255,0.1)', display: 'flex', 
+ 523|  7|             alignItems: 'center', justifyContent: 'center', color: '#fff' 
+ 524|  7|           }}>
+ 525|  7|             <ChevronRight size={18} />
+ 526|  6|           </div>
+ 527|  5|         </div>
+ 528|  5| 
+ 529|  5|         {/* Feature Buttons: Saved Contacts & Transaction History */}
+ 530|  6|         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+ 531|  6|           <button 
+ 532|  6|             onClick={onNavigateToSavedContacts}
+ 533|  6|             style={{
+ 534|  6|               background: '#ffffff',
+ 535|  6|               border: '1px solid #e5e7eb',
+ 536|  6|               borderRadius: '16px',
+ 537|  6|               padding: '16px',
+ 538|  6|               display: 'flex',
+ 539|  6|               flexDirection: 'column',
+ 540|  6|               alignItems: 'center',
+ 541|  6|               gap: '8px',
+ 542|  6|               cursor: 'pointer',
+ 543|  6|               boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+ 544|  6|             }}
+ 545|  6|           >
+ 546|  7|             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+ 547|  7|               <Globe size={20} />
+ 548|  6|             </div>
+ 549|  6|             <div style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>Saved Contacts</div>
+ 550|  6|           </button>
+ 551|  6| 
+ 552|  6|           <button 
+ 553|  6|             onClick={onNavigateToTransactionHistory}
+ 554|  6|             style={{
+ 555|  6|               background: '#ffffff',
+ 556|  6|               border: '1px solid #e5e7eb',
+ 557|  6|               borderRadius: '16px',
+ 558|  6|               padding: '16px',
+ 559|  6|               display: 'flex',
+ 560|  6|               flexDirection: 'column',
+ 561|  6|               alignItems: 'center',
+ 562|  6|               gap: '8px',
+ 563|  6|               cursor: 'pointer',
+ 564|  6|               boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+ 565|  6|             }}
+ 566|  6|           >
+ 567|  7|             <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+ 568|  7|               <FileCheck size={20} />
+ 569|  6|             </div>
+ 570|  6|             <div style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>Transaction History</div>
+ 571|  6|           </button>
+ 572|  5|         </div>
+ 573|  5| 
+ 574|  4|       </div>
+ 575|  4| 
+ 576|  4|       <UpiPinModal 
+ 577|  4|         isOpen={isPinModalOpen}
+ 578|  4|         onClose={() => setIsPinModalOpen(false)}
+ 579|  4|         onSuccess={() => {
+ 580|  4|           setIsPinModalOpen(false);
+ 581|  4|           setShowBalance(true);
+ 582|  4|         }}
+ 583|  4|         transferData={{ action: 'check_balance' }}
+ 584|  4|       />
+ 585|  3|     </div>
+ 586|  3|   );
+ 587|  3| };
+ 588|  3| 
